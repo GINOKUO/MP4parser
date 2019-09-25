@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <memory.h>
 #include <assert.h>
 #include <math.h>
@@ -6634,7 +6633,7 @@ static mp4_box_t *MP4_ReadBox( stream_t *p_stream, mp4_box_t *p_father )
 
    if( !(MP4_Box_Function[i_index].MP4_ReadBox_function)( p_stream, p_box ) )
    {
-      MP4_BoxFree( p_stream, p_box );
+      MP4_BoxFree( p_box );
       return NULL;
    }
 
@@ -6675,7 +6674,7 @@ static mp4_box_t *MP4_ReadBoxFromBuffer( stream_t *p_stream, mp4_box_t *p_father
 
    if( !(MP4_Box_FunctionFromBuffer[i_index].MP4_ReadBox_function)( p_stream, p_box ) )
    {
-      MP4_BoxFreeFromBuffer( p_stream, p_box );
+      MP4_BoxFreeFromBuffer( p_box );
       return NULL;
    }
 
