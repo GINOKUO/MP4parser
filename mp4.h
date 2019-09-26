@@ -641,6 +641,16 @@ typedef struct mp4_box_data_stsz_s
 
 } mp4_box_data_stsz_t;
 
+typedef struct mp4_box_data_stco_s
+{
+    uint8_t  version;
+    uint32_t flags;
+
+    uint32_t sample_size;
+    uint32_t *entry_size; /* array , empty if sample_size != 0 */
+
+} mp4_box_data_stco_t;
+
 typedef struct mp4_box_data_stz2_s
 {
     uint8_t  version;
@@ -1005,6 +1015,14 @@ typedef struct mp4_box_data_avcC_s
 
 } mp4_box_data_avcC_t;
 
+typedef struct mp4_box_data_avc1_s
+{
+   int64_t i_pos;
+   uint32_t i_type;
+   uint64_t i_size;
+
+} mp4_box_data_avc1_t;
+
 typedef struct mp4_box_data_dac3_s
 {
    uint8_t fscod;
@@ -1139,6 +1157,7 @@ typedef union mp4_box_data_s
    mp4_box_data_sample_mmth_t *p_sample_mmth;
 
    mp4_box_data_esds_t *p_esds;
+   mp4_box_data_avc1_t *p_avc1;
    mp4_box_data_avcC_t *p_avcC;
    mp4_box_data_dac3_t *p_dac3;
    mp4_box_data_enda_t *p_enda;
@@ -1154,6 +1173,8 @@ typedef union mp4_box_data_s
    mp4_box_data_mfro_t *p_mfro;
 
    mp4_box_data_stsz_t *p_stsz;
+   mp4_box_data_stco_t *p_stco;
+
    mp4_box_data_stz2_t *p_stz2;
    mp4_box_data_stsc_t *p_stsc;
    mp4_box_data_co64_t *p_co64;
