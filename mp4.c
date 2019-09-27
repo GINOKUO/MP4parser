@@ -6554,7 +6554,7 @@ mp4_box_t * MP4_BoxSearchBox(mp4_box_t *p_head, uint32_t i_type)
 			||cur->i_type==ATOM_ilst||cur->i_type==ATOM_mvex||cur->i_type==ATOM_stsd||cur->i_type==ATOM_tref \
 			||cur->i_type==ATOM_traf||cur->i_type==ATOM_mfra||cur->i_type==ATOM_dref||cur->i_type==ATOM_root)
         {
-			printf("current box is %c%c%c%c !!\n",cur->i_type&0x000000ff,(cur->i_type&0x0000ff00)>>8,(cur->i_type&0x00ff0000)>>16,(cur->i_type&0xff000000)>>24);
+			//printf("current box is %c%c%c%c !!\n",cur->i_type&0x000000ff,(cur->i_type&0x0000ff00)>>8,(cur->i_type&0x00ff0000)>>16,(cur->i_type&0xff000000)>>24);
 			if(cur->i_type==i_type)
 				return cur;
         	 // find predecessor
@@ -6565,7 +6565,7 @@ mp4_box_t * MP4_BoxSearchBox(mp4_box_t *p_head, uint32_t i_type)
         }
         else
         {
-			printf("current box is %c%c%c%c\n",cur->i_type&0x000000ff,(cur->i_type&0x0000ff00)>>8,(cur->i_type&0x00ff0000)>>16,(cur->i_type&0xff000000)>>24);
+			//printf("current box is %c%c%c%c\n",cur->i_type&0x000000ff,(cur->i_type&0x0000ff00)>>8,(cur->i_type&0x00ff0000)>>16,(cur->i_type&0xff000000)>>24);
 			if(cur->i_type == i_type)
 				{
 					return(cur); /*Find the box*/

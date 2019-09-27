@@ -8,9 +8,8 @@ int main(int argc, char* argv[])
 {
    int sampleCount;
    mp4_box_t *root = NULL, *stsz = NULL, *stco = NULL, *stsc = NULL;
-   stream_t* s = NULL;
+   stream_t* fd = NULL;
 
-   //////////////ÐÞ¸Äºó
    unsigned long filesize = 0;
    BUFFER_t *buffer = NULL;
    FILE *file = fopen("test.mp4","rb");
@@ -24,11 +23,11 @@ int main(int argc, char* argv[])
    memcpy(buffer->buf,buffer->begin_addr,filesize);
    (*buffer).offset = 0;
    (*buffer).filesize = filesize;
-   s = create_buffer_stream();
-   if (buffer_open(s, buffer) == 0)
+   fd = create_buffer_stream();
+   if (buffer_open(fd, buffer) == 0)
       return -1;
-  
-   root = MP4_BoxGetRootFromBuffer(s,filesize);
+
+   root = MP4_BoxGetRootFromBuffer(fd,filesize);
    stsz = MP4_BoxSearchBox(root,ATOM_stsz);
    printf("box is %c%c%c%c  type %x  sample_count %d\n"
 		,stsz->i_type&0x000000ff
@@ -56,6 +55,7 @@ int main(int argc, char* argv[])
 		
    int stco_entry_count = stco->data.p_stco->sample_size;
    int stco_chunk_offset[stco_entry_count];
+   int chunk_offset_no = 0;
    for(sampleCount = 0; sampleCount < stco_entry_count; sampleCount++) 
    {
 	   stco_chunk_offset[sampleCount] = stco->data.p_stco->entry_size[sampleCount*2];
@@ -82,14 +82,15 @@ int main(int argc, char* argv[])
     }
    	
    MP4_BoxFreeFromBuffer( root );
-   buffer_close(s);
-   destory_buffer_stream(s);
+   buffer_close(fd);
+   destory_buffer_stream(fd);
       
    ////////////////
    
-   s = create_file_stream();
-   if (stream_open(s, "test.mp4", MODE_READ) == 0)
+   fd = create_file_stream();
+   if (stream_open(fd, "test.mp4", MODE_READ) == 0)
       return -1;
+
   
    int len;
    int buff[1] = {0};
@@ -112,22 +113,20 @@ int main(int argc, char* argv[])
 
    int offset = 0;
    int startCodeNum = 4;
-
+   
    while (1)
    {
-      len = stream_read(s, buff, 1);
+      len = stream_read(fd, buff, 1);
 	  buff_tmp[3] = buff_tmp[2];
 	  buff_tmp[2] = buff_tmp[1];
 	  buff_tmp[1] = buff_tmp[0];
 	  buff_tmp[0] = buff[0];
-	  //printf("%x ",buff[0]);
 	  if(buff_tmp[0] == avcC_type[0] && buff_tmp[1] == avcC_type[1] && buff_tmp[2] == avcC_type[2] && buff_tmp[3] == avcC_type[3])
 	  {
 		  avcC_start_offset = offset;
 		  sps_len_offset[0] = avcC_start_offset + 7;
 		  sps_len_offset[1] = sps_len_offset[0] + 1;
 		  sps_start_offset = sps_len_offset[1] + 1;
-		  //printf("offset %d\n",offset);
 	  }
 	  // get sps
 	  if(offset == sps_len_offset[0] || offset == sps_len_offset[1])
@@ -146,9 +145,8 @@ int main(int argc, char* argv[])
 	  }
 	  if(offset >= sps_start_offset && offset <= sps_start_offset + sps_len - 1)
 	  {
-		  sps[sps_len_start+startCodeNum] = buff[0];
+		  sps[sps_len_start + startCodeNum] = buff[0]; // + startCodeNum
 		  sps_len_start++;
-		  //printf("%x ",buff[0]);
 	  }
 	  // get pps
 	  if(offset == pps_len_offset[0] || offset == pps_len_offset[1]) 
@@ -164,26 +162,118 @@ int main(int argc, char* argv[])
 	  }
 	  if(offset >= pps_start_offset && offset <= pps_start_offset + pps_len - 1)
 	  {
-		  pps[pps_len_start + startCodeNum] = buff[0];
+		  pps[pps_len_start + startCodeNum] = buff[0]; // + startCodeNum
 		  pps_len_start++;
-		  //printf("%x ",buff[0]);
 	  }
+	  
 	  offset++;
-
+	  
       if (len == 0)
          break;
    }
+
+   stream_close(fd);
+   destory_file_stream(fd);
+   
+   stream_t* h264 = NULL; 												//h264 file
+   h264 = create_buf_file_stream(); 									//h264 file
+   if (stream_open(h264, "test.h264", MODE_WRITE | MODE_CREATE) == 0)	//h264 file
+      return -1;														//h264 file
+   
+   fd = create_file_stream();
+   if (stream_open(fd, "test.mp4", MODE_READ) == 0)
+      return -1;
+  
+   offset = 0;
+   uint8_t *frame_buff = (uint8_t*)malloc(25000);
+   int stsz_sample_count_num = 0;
+   int sss_time = 0;
+   int sco_count = 0;
+   int chunk = 0;
+   int frame_count = 0;
+   
+   uint8_t *spss_data = (uint8_t*)malloc(1024);	//h264 file
+   uint8_t *ppss_data = (uint8_t*)malloc(1024);	//h264 file
    
    int i;
-   for(i  = 0 ; i < pps_len + startCodeNum ; i++)
-   	  printf("%x ",pps[i]);
-
-
-   stream_close(s);
-   destory_file_stream(s);
+   for(i  = 0 ; i < sps_len + startCodeNum  ; i++) // + startCodeNum
+   {
+	   spss_data[i] = sps[i];                 //h264 file
+   	   //printf("%x ",sps[i]);
+   }
+   for(i  = 0 ; i < pps_len + startCodeNum  ; i++)	// + startCodeNum
+   {   	   
+	  ppss_data[i] = pps[i];  				 //h264 file
+	  //printf("%x ",pps[i]);
+   }
    
-   
+   stream_write(h264, spss_data, sps_len + startCodeNum );   //h264 file + startCodeNum
+   stream_write(h264, ppss_data, pps_len+ startCodeNum );   //h264 file + startCodeNum
 
+   while(1)
+   {
+	  if(offset < stco_chunk_offset[sco_count])
+	  {
+		  stream_read(fd, frame_buff, 1);
+	  	  offset++;
+	  }
+	  else
+	  {
+		 //printf("%d ",offset);
+		 frame_count++;
+		 stream_read(fd, frame_buff, stsz_smaple_size[stsz_sample_count_num]);
+		 // -----------------> + startCodeNum
+		 for(i = 0; i < 4; i++)
+		 {
+			if(i == 3)
+				frame_buff[i] = 1;
+			else
+				frame_buff[i] = 0;
+		 }
+		 // <-----------------
+		 offset += stsz_smaple_size[stsz_sample_count_num]; 
+		 
+		 stream_write(h264, frame_buff, stsz_smaple_size[stsz_sample_count_num]); //h264 file
+
+		 /*
+		 if(frame_count == 5130) {
+		 int i;
+		 printf("\nframe %d \n",frame_count);
+         for(i  = 0 ; i < stsz_smaple_size[stsz_sample_count_num]  ; i++)
+			printf("%x ",frame_buff[i]);
+		 }
+		 */
+		 stsz_sample_count_num++;
+		 chunk++;
+		 if(sco_count == stsc_first_chunk[1] - 1) {
+			if(chunk == stsc_samples_per_chunk[1] )
+			{
+				sco_count++;
+				chunk = 0;
+			}
+		 } 
+		 else
+		 {
+			if(chunk == stsc_samples_per_chunk[0] )
+			{
+				sco_count++;
+				chunk = 0;
+			}
+		 }
+	  }
+	  
+	  if (frame_count == stsz_sample_count )
+         break;
+	 
+
+   }
+   
+   stream_close(fd);
+   destory_file_stream(fd);
+   
+   stream_close(h264);			//h264 file
+   destory_file_stream(h264);	//h264 file
+  
 	return 0;
 }
 
