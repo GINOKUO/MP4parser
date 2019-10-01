@@ -6599,7 +6599,7 @@ mp4_box_t * MP4_BoxSearchBox(mp4_box_t *p_head, uint32_t i_type)
 * MP4_ReadBox : parse the actual box and the children
 *  XXX : Do not go to the next box
 *****************************************************************************/
-static mp4_box_t *MP4_ReadBox( stream_t *p_stream, mp4_box_t *p_father )
+mp4_box_t *MP4_ReadBox( stream_t *p_stream, mp4_box_t *p_father )
 {
    mp4_box_t *p_box = calloc( 1, sizeof( mp4_box_t ) ); /* Needed to ensure simple on error handler */
    unsigned int i_index;
@@ -6640,7 +6640,7 @@ static mp4_box_t *MP4_ReadBox( stream_t *p_stream, mp4_box_t *p_father )
    return p_box;
 }
 
-static mp4_box_t *MP4_ReadBoxFromBuffer( stream_t *p_stream, mp4_box_t *p_father )
+mp4_box_t *MP4_ReadBoxFromBuffer( stream_t *p_stream, mp4_box_t *p_father )
 {
    mp4_box_t *p_box = calloc( 1, sizeof( mp4_box_t ) ); /* Needed to ensure simple on error handler */
    unsigned int i_index;

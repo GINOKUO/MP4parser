@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "mp4.h"
-#include "malloc.h"
-#include "string.h"
+#include <malloc.h>
+#include <string.h>
 
 
 int main(int argc, char* argv[])
@@ -55,7 +55,6 @@ int main(int argc, char* argv[])
 		
    int stco_entry_count = stco->data.p_stco->sample_size;
    int stco_chunk_offset[stco_entry_count];
-   int chunk_offset_no = 0;
    for(sampleCount = 0; sampleCount < stco_entry_count; sampleCount++) 
    {
 	   stco_chunk_offset[sampleCount] = stco->data.p_stco->entry_size[sampleCount*2];
@@ -145,7 +144,8 @@ int main(int argc, char* argv[])
 	  }
 	  if(offset >= sps_start_offset && offset <= sps_start_offset + sps_len - 1)
 	  {
-		  sps[sps_len_start + startCodeNum] = buff[0]; // + startCodeNum
+		  //sps[sps_len_start + startCodeNum] = buff[0]; // + startCodeNum
+		  sps[sps_len_start] = buff[0]; 
 		  sps_len_start++;
 	  }
 	  // get pps
@@ -162,7 +162,8 @@ int main(int argc, char* argv[])
 	  }
 	  if(offset >= pps_start_offset && offset <= pps_start_offset + pps_len - 1)
 	  {
-		  pps[pps_len_start + startCodeNum] = buff[0]; // + startCodeNum
+		  //pps[pps_len_start + startCodeNum] = buff[0]; // + startCodeNum
+		  pps[pps_len_start] = buff[0]; 
 		  pps_len_start++;
 	  }
 	  
@@ -174,41 +175,41 @@ int main(int argc, char* argv[])
 
    stream_close(fd);
    destory_file_stream(fd);
-   
+   /*
    stream_t* h264 = NULL; 												//h264 file
    h264 = create_buf_file_stream(); 									//h264 file
    if (stream_open(h264, "test.h264", MODE_WRITE | MODE_CREATE) == 0)	//h264 file
       return -1;														//h264 file
-   
+   */
    fd = create_file_stream();
    if (stream_open(fd, "test.mp4", MODE_READ) == 0)
       return -1;
   
    offset = 0;
-   uint8_t *frame_buff = (uint8_t*)malloc(25000);
+   uint8_t *frame_buff = (uint8_t*)malloc(300000);
    int stsz_sample_count_num = 0;
-   int sss_time = 0;
    int sco_count = 0;
    int chunk = 0;
    int frame_count = 0;
-   
-   uint8_t *spss_data = (uint8_t*)malloc(1024);	//h264 file
-   uint8_t *ppss_data = (uint8_t*)malloc(1024);	//h264 file
+ 
+ 
+   uint8_t *sps_frame = (uint8_t*)malloc(1024);	//h264 file
+   uint8_t *pps_frame = (uint8_t*)malloc(1024);	//h264 file
    
    int i;
-   for(i  = 0 ; i < sps_len + startCodeNum  ; i++) // + startCodeNum
+   for(i  = 0; i < sps_len; i++) // if startCodeNum  sps_len + startCodeNum 
    {
-	   spss_data[i] = sps[i];                 //h264 file
-   	   //printf("%x ",sps[i]);
+	   sps_frame[i] = sps[i];                 
+   	   //printf("%x ",sps_frame[i]);
    }
-   for(i  = 0 ; i < pps_len + startCodeNum  ; i++)	// + startCodeNum
+   for(i  = 0; i < pps_len; i++)	// + if startCodeNum  pps_len + startCodeNum  
    {   	   
-	  ppss_data[i] = pps[i];  				 //h264 file
-	  //printf("%x ",pps[i]);
+	  pps_frame[i] = pps[i];  				 
+	  //printf("%x ",pps_frame[i]);
    }
    
-   stream_write(h264, spss_data, sps_len + startCodeNum );   //h264 file + startCodeNum
-   stream_write(h264, ppss_data, pps_len+ startCodeNum );   //h264 file + startCodeNum
+   //stream_write(h264, sps_frame, sps_len + startCodeNum );   //h264 file + startCodeNum
+   //stream_write(h264, pps_frame, pps_len+ startCodeNum );   //h264 file + startCodeNum
 
    while(1)
    {
@@ -222,6 +223,7 @@ int main(int argc, char* argv[])
 		 //printf("%d ",offset);
 		 frame_count++;
 		 stream_read(fd, frame_buff, stsz_smaple_size[stsz_sample_count_num]);
+		 /*
 		 // -----------------> + startCodeNum
 		 for(i = 0; i < 4; i++)
 		 {
@@ -231,12 +233,14 @@ int main(int argc, char* argv[])
 				frame_buff[i] = 0;
 		 }
 		 // <-----------------
+		 */
 		 offset += stsz_smaple_size[stsz_sample_count_num]; 
 		 
-		 stream_write(h264, frame_buff, stsz_smaple_size[stsz_sample_count_num]); //h264 file
+		 //stream_write(h264, frame_buff, stsz_smaple_size[stsz_sample_count_num]); //h264 file
 
-		 /*
-		 if(frame_count == 5130) {
+		/*
+		 //check frame data
+		 if(frame_count == 100) {
 		 int i;
 		 printf("\nframe %d \n",frame_count);
          for(i  = 0 ; i < stsz_smaple_size[stsz_sample_count_num]  ; i++)
@@ -271,8 +275,8 @@ int main(int argc, char* argv[])
    stream_close(fd);
    destory_file_stream(fd);
    
-   stream_close(h264);			//h264 file
-   destory_file_stream(h264);	//h264 file
+   //stream_close(h264);			//h264 file
+   //destory_file_stream(h264);	//h264 file
   
 	return 0;
 }

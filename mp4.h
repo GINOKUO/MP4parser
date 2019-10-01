@@ -1224,8 +1224,8 @@ mp4_box_t *MP4_BoxGetRoot(stream_t * s);
 mp4_box_t *MP4_BoxGetRootFromBuffer(stream_t * s, unsigned long filesize);
 void MP4_BoxFree( mp4_box_t *box );
 void MP4_BoxFreeFromBuffer( mp4_box_t *box );
-static mp4_box_t *MP4_ReadBox(stream_t *s, mp4_box_t *father);
-static mp4_box_t *MP4_ReadBoxFromBuffer(stream_t *s, mp4_box_t *father);
+mp4_box_t *MP4_ReadBox(stream_t *s, mp4_box_t *father);
+mp4_box_t *MP4_ReadBoxFromBuffer(stream_t *s, mp4_box_t *father);
 mp4_box_t *MP4_BoxGet(mp4_box_t *p_box, const char *psz_fmt, ...);
 mp4_box_t * MP4_BoxSearchBox(mp4_box_t *p_head, uint32_t i_type);
 
